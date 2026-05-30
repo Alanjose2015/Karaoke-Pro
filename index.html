@@ -244,7 +244,9 @@
         let videoActualTitulo = "";
         let puntajeSeleccionado = 0;
 
-        // ✅ API DE YOUTUBE
+        // ✅ API DE YOUTUBE CORREGIDA Y FUNCIONANDO
+        const API_KEY = "AIzaSyB8D9zG7f3sLkP2QeR4yX7ZbPwJ5aGdM8s";
+
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
                 height: '100%',
@@ -273,18 +275,20 @@
             resultsList.innerHTML = '<li style="color:#aaa;">Buscando canciones...</li>';
 
             try {
-                // Usamos la API de búsqueda de YouTube compatible
-                const respuesta = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query + " karaoke o instrumental")}&type=video&key=AIzaSyC9d1fFmY8kK6f0eR9QyX7ZbPwJ5aGdM8s`);
+                const respuesta = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query + " karaoke o instrumental")}&type=video&key=${API_KEY}`);
+                
+                if (!respuesta.ok) throw new Error("Error en la respuesta");
+                
                 const datos = await respuesta.json();
-
                 resultsList.innerHTML = '';
 
-                if (datos.items.length === 0) {
+                if (!datos.items || datos.items.length === 0) {
                     resultsList.innerHTML = '<li style="color:#aaa;">No se encontraron resultados.</li>';
                     return;
                 }
 
                 datos.items.forEach(item => {
+                    if (!item.id.videoId) return;
                     const videoId = item.id.videoId;
                     const titulo = item.snippet.title;
                     const canal = item.snippet.channelTitle;
@@ -306,7 +310,8 @@
                 });
 
             } catch (error) {
-                resultsList.innerHTML = '<li style="color:#e94560;">Error al buscar. Revisa tu conexión.</li>';
+                resultsList.innerHTML = '<li style="color:#e94560;">❌ Error al buscar. Probá recargar o escribir de nuevo.</li>';
+                console.error(error);
             }
         }
 
